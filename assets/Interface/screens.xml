@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nifty xmlns="http://nifty-gui.sourceforge.net/nifty.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xsi:schemaLocation="http://nifty-gui.sourceforge.net/nifty.xsd http://nifty-gui.sourceforge.net/nifty.xsd">
+  <useStyles filename="nifty-default-styles.xml" />
+  <useControls filename="nifty-default-controls.xml" />
+  <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+  <!-- This demo shows a two-screen layout in Nifty's XML syntax.         -->
+  <!-- You see two screens with two layers each, contain several panels.  -->
+  <!-- The panels contain images, text, and controls (label and buttons). -->
+  <!-- Buttons have an interaction defined, and some of the text          -->
+  <!-- is dynamically defined, using the MyStartScreen controller.        -->
+  <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+  
+  <!-- +++++++++++++++++++++++++++++++++++++++ -->
+  <!-- lay out the start screen/layers/panels -->
+  <!-- +++++++++++++++++++++++++++++++++++++++ -->
+  <screen id="start" controller="GameLogic.Gui.StartScreen">
+  
+    <layer id="foreground" childLayout="vertical">
+      <panel id="panel_top" height="25%" width="75%" align="center" childLayout="center">  
+        <text text="Pursuers and Evaders" font="Interface/Fonts/MainTitle.fnt" width="100%" height="100%"/>
+      </panel>
+      <panel id="panel_menu" height="75%" width="75%" align="center" childLayout="vertical"   backgroundColor="#88f8">  
+        
+            <panel height="5%"></panel>
+            <control name="button" label="Map Editor" id="MapEditor" align="center" valign="center" visibleToMouse="true" > 
+              <interact onClick="goToMapEditor()"/>
+            </control>
+            <panel height="5%"></panel>
+             <control name="button" label="Start Game" id="StartButton" align="center" valign="center" visibleToMouse="true" > 
+              <interact onClick="startGame()"/>
+            </control>
+            <panel height="5%"></panel>
+             <control name="button" label="Settings" id="settingButton" align="center" valign="bottom" visibleToMouse="true" > 
+              <interact onClick="goToSettingGame()"/>
+            </control>
+            <panel height="5%"></panel>
+             <control name="button" label="Quit" id="QuitButton" align="center" valign="bottom" visibleToMouse="true" > 
+              <interact onClick="quitGame()"/>
+            </control>
+         
+       
+      </panel>
+    </layer>
+  </screen>
+  <screen id="actualGame" controller="GameLogic.Gui.StartScreen">
+ 
+    <layer id="foreground" childLayout="vertical">
+        
+         <panel id="topPanel" width="100%" height="20%" childLayout="horizontal" background="#00f8">
+             <panel id="textPanel" width="60%" childLayout="horizontal" height="50%">
+                <control name="label" id="evadersLeft" text="" font="Interface/Fonts/NormalText.fnt" width="70%" height="100%"/>
+             </panel>
+             <panel id="textPanel" width="20%" childLayout="horizontal" height="40%">
+                 <control name="button" label="Pause" id="PauseButton" align="center" valign="bottom" visibleToMouse="true" > 
+                    <interact onClick="pauseGame()"/>
+                 </control>
+                 <control name="button" label="Back to menu" id="menuButton" align="center" valign="bottom" visibleToMouse="true" > 
+                    <interact onClick="backToMenu()"/>
+                 </control>
+             </panel>
+             <panel width="100px" />
+         </panel>
+
+     
+        
+        
+
+    
+    </layer>
+  </screen>
+  
+   <screen id="settings" controller="GameLogic.Gui.StartScreen">
+  
+    <layer id="foreground" childLayout="vertical">
+      <panel id="panel_top" height="25%" width="75%" align="center" childLayout="center">  
+        <text text="Pursuers and Evaders" font="Interface/Fonts/MainTitle.fnt" width="100%" height="100%"/>
+      </panel>
+      <panel id="panel_menu" height="75%" width="75%" align="center" childLayout="horizontal"   backgroundColor="#88f8">  
+          <panel height="100%" width="20%" backgroundColor="#0000">  </panel>
+          <panel height="100%" width="60%" childLayout="vertical" backgroundColor="#88f8">  
+            <panel height="5%"></panel>
+            <panel childLayout="horizontal" width="100%" height="10%">
+            <text text="Number of pursuers " font="Interface/Fonts/NormalText.fnt" width="70%" height="100%"/>
+
+            <control name="textfield" id="n_pursuers" text="10" maxLength="3" width="9%" height="80%" />
+            </panel>
+            <panel height="5%"></panel>
+            <panel childLayout="horizontal" width="100%" height="10%">
+            <text text="Number of evaders: " font="Interface/Fonts/NormalText.fnt" width="70%" height="100%"/>
+
+            <control name="textfield" id="n_evaders" text="10" maxLength="3" width="9%" height="80%" />
+            </panel>
+            
+            <panel height="5%"></panel>
+            <panel childLayout="center" width="100%" height="10%">
+                 <control name="button" label="Back to menu" id="menuButton" align="center" valign="bottom" visibleToMouse="true" > 
+                    <interact onClick="backToMenu()"/>
+                 </control>
+            </panel>
+            
+        </panel>
+        <panel height="100%" width="20%" backgroundColor="#0000">  </panel>
+      </panel>
+    </layer>
+  </screen>
+  <!-- +++++++++++++++++++++++++++++++++++++++ -->
+  <!-- lay out the HUD screen/layers/panels -->
+  <!-- +++++++++++++++++++++++++++++++++++++++ -->
+  <screen id="mapEditor" controller="GameLogic.Gui.StartScreen">
+ 
+    <layer id="foreground" childLayout="vertical">
+        
+         <panel id="topPanel" width="100%" height="80%" childLayout="horizontal" background="#00f8">
+               <panel id="left" width="80%" height="100%" childLayout="center" background="#00f8">
+         
+               </panel>
+               <panel id="right" width="200px" height="100%" childLayout="vertical" background="#00f8">
+                    <panel id="cubePanel" width="100%" height="15%" childLayout="center" >  
+                        <control id="RadioGroup-1" name="radioButtonGroup"/>
+                     
+                   
+                          <panel childLayout="vertical" backgroundColor="#8001" paddingLeft="7px" paddingRight="7px" paddingTop="4px" paddingBottom="4px" width="105px">
+                            <effect>
+                              <onActive name="border" color="#0008" />
+                            </effect>
+                          
+                            <panel childLayout="horizontal">
+                              <control name="label" text="Algorithm 1" with="60px" />
+                              <control name="radioButton" id="algorithm-1" group="RadioGroup-1">
+                                  <interact onClick="selectAlgorithm1()"/>
+                              </control>
+                              
+                            </panel>
+                            <panel childLayout="horizontal">
+                              <control name="label" text="Algorithm 2" with="60px" />
+                              <control name="radioButton" id="algorithm-2" group="RadioGroup-1">
+                                   <interact onClick="selectAlgorithm2()"/>
+                              </control>
+                            </panel>
+                          </panel>
+                   
+                        
+
+                    </panel>
+                    <panel id="sliderPanel" width="100%" height="50%" childLayout="vertical" >  
+                      <panel childLayout="horizontal">
+                        <control name="label" id="radiusLabel" text="Radius: " />
+                        <control id="radius" name="horizontalSlider" min="10" max="50" stepSize="5" initial="50"/>
+                      </panel>
+                      <panel childLayout="horizontal">
+                        <control name="label" id="heightmapLabel" text="HM Width: " />
+                        <control id="heightmapwidth" name="horizontalSlider" min="300" max="600" stepSize="25" initial="600"/>
+                      </panel>
+                      <panel childLayout="horizontal">
+                        <control name="label" id="seedLabel" text="Seed: " />
+                        <control id="seed" name="horizontalSlider" min="1000000" max="4000000" stepSize="100000" initial="19380400"/>
+                      </panel>
+                      
+                      <panel id="sliderPanel1" childLayout="horizontal">
+                        <control name="label" id="numIslandsLabel" text="N Islands: " />
+                        <control id="numIslands" name="horizontalSlider" min="1" max="35" stepSize="5" initial="20"/>
+                      </panel>
+                      <panel id="sliderPanel2" childLayout="horizontal">
+                        <control name="label" id="islandRadiusLabel" text="Island radius: " />
+                        <control id="islandRadius" name="horizontalSlider" min="20" max="90" stepSize="5" initial="90"/>
+                      </panel>
+                      <panel id="sliderPanel3" childLayout="horizontal">
+                        <control name="label" id="iterationsLabel" text="N iterations: " />
+                        <control id="iterations" name="horizontalSlider"  min="15000" max="50000" stepSize="1000" initial="25000"/>
+                      </panel>
+                      <panel id="sliderPanel4" childLayout="horizontal">
+                        <control name="label" id="displacementLabel" text="Displacement: " />
+                        <control id="displacement" name="horizontalSlider" min="-1" max="1" stepSize="0.1" initial="0.7"/>
+                      </panel>
+                      <panel id="sliderPanel5" childLayout="horizontal">
+                        <control name="label" id="smoothingLabel" text="Smoothing: " />
+                        <control id="smoothing" name="horizontalSlider" min="0" max="1" stepSize="0.1" initial="0.3"/>
+                      </panel>
+
+
+                    </panel>
+                    <panel id="boxPanel" width="100%" height="15%" childLayout="center" >  
+                      <control name="button" label="Generate Planet" id="planetGeneratorButton" align="center" width="100%" height="100%"  visibleToMouse="true" > 
+                          <interact onClick="generatePlanet()"/>
+                      </control>
+
+                    </panel>
+                    <panel id="exitPanel" width="100%" height="15%" childLayout="center" >  
+                      <control name="button" label="Back to menu" id="backMenuButton" align="center" width="100%" height="100%"  visibleToMouse="true" > 
+                          <interact onClick="backToMenu()"/>
+                      </control>
+
+                    </panel>
+               </panel>
+         
+         </panel>
+        
+        
+ 
+     
+        
+        
+
+    
+    </layer>
+  </screen>
+  
+</nifty>
