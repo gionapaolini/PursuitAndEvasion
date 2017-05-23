@@ -15,13 +15,64 @@ import java.util.ArrayList;
  */
 public class GraphA {
    private ArrayList<Vertex> vertices;
+   private Vertex end;
    
    
    public GraphA(){
        this.vertices = new ArrayList();
+      
        
    }
+   public GraphA(Triangle[] triangleList){
+       this.vertices = new ArrayList();
+    for(int i=0;i<triangleList.length;i++){
+            
+            Triangle current = triangleList[i];
+            Vertex currentVertex;
+            if(notExist(current)){
+                
+                 currentVertex = new Vertex(current);
+                  insertVertex(currentVertex);
+                 
+                 
+                 
+            }else{
+                currentVertex = getVertexFromTriangle(current);
+            }
+            setValue(currentVertex);
+            for(int j=i+1;j<triangleList.length;j++){
+                Triangle secondTriangle = triangleList[j];
+                Vertex secondVertex;
+                if(notExist(secondTriangle)){
+                    secondVertex = new Vertex(secondTriangle);
+                    insertVertex(secondVertex);
+                 
+                }else{
+                    secondVertex = getVertexFromTriangle(secondTriangle);
+                }
+                 
+                if(isNeighbour(current,secondTriangle)){
+                    insertEdge(currentVertex,secondVertex);
+                    Triangle tri = currentVertex.getTriangle();
+                    Triangle tri1 = secondVertex.getTriangle();
+                    
+                    //System.out.println(tri.get1()+","+tri.get2()+","+tri.get3()+"ADDED"+tri1.get1()+","+tri1.get2()+","+tri1.get3());
+                }
+                
+            }
+            
+        }
+   }
    
+   
+    private boolean isNeighbour(Triangle first, Triangle second){
+        if(first.get1().equals(second.get1()) || first.get1().equals(second.get2()) || first.get1().equals(second.get3())
+                || first.get2().equals(second.get1()) || first.get2().equals(second.get2()) || first.get2().equals(second.get3())
+                    || first.get3().equals(second.get1()) || first.get3().equals(second.get2()) || first.get3().equals(second.get3())){
+            return true;
+        }
+        return false;         
+    }
    public void insertVertex(Vertex a){
        vertices.add(a);
    }
@@ -96,17 +147,11 @@ public class GraphA {
 
      public void setValue(Vertex v){
         
-           // System.out.println(triangleList[j].get1()+", "+triangleList[j].get2()+", "+triangleList[j].get3());
-            //System.out.println("Angle Heuristic:"+getAngle(new Vector3f(0,1,0),triangleList[j].getNormal()));
             Vector3f start = v.getTriangle().getCenter();
-            Vector3f end = new Vector3f(0,1,0);
-            double distance = Math.sqrt(Math.pow(start.x - end.x,2)+Math.pow(start.y - end.y,2)+Math.pow(start.z - end.z,2));
-            double angle =0;
-//double angle = getAngle(new Vector3f(0,1,0),v.getTriangle().getNormal());
-          //  System.out.println("Distance Heuristic: "+Math.sqrt(Math.pow(start.x - end.x,2)+Math.pow(start.y - end.y,2)+Math.pow(start.z - end.z,2)));
-            
-          //  System.out.println();
-            v.setH(distance+angle);
+            // ONLY FOR FLAT SURFACE, TO CHANGE FOR PLANET
+            v.setAngle(getAngle(new Vector3f(0,1,0),v.getTriangle().getNormal()));      
+            v.setHeight(start.getY()); 
+            //v.setDistance(Math.sqrt(Math.pow(start.x - end.x,2)+Math.pow(start.y - end.y,2)+Math.pow(start.z - end.z,2)));
      
         
     }
@@ -130,11 +175,17 @@ public class GraphA {
         Vertex v = vertices.get(i);
        System.out.println(v.getTriangle().get1()+","+v.getTriangle().get2()+","+v.getTriangle().get3());
 
-        System.out.println("H value: "+v.getH());
+        System.out.println("Height value: "+v.getHeight());
+        System.out.println("Distance value: "+v.getDistance());
+        System.out.println("Angle value: "+v.getAngle());
+
+
         for (Vertex neighbor : v.getNeighbors()) {
             System.out.println(neighbor.getTriangle().get1()+","+neighbor.getTriangle().get2()+","+neighbor.getTriangle().get3());
         }
         
     }
+    
+    
     
 }

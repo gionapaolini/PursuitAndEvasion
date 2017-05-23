@@ -20,6 +20,9 @@ public class Vertex {
     private double time;
     private Vertex cameFrom;
     private Triangle triangle;
+    private double height;
+    private double angle;
+    private double distance;
     private ArrayList<Vertex> neighbors;
     
     public Vertex(Triangle triangle){
@@ -28,6 +31,22 @@ public class Vertex {
         this.time = 0.0;
         this.neighbors = new ArrayList();
         this.triangle = triangle;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+
+    public double getAngle() {
+        return angle;
+    }
+
+    public void setAngle(double angle) {
+        this.angle = angle;
     }
     
     public Triangle getTriangle(){
@@ -51,7 +70,7 @@ public class Vertex {
     }
     
     
-    public double calcF(Vertex destination) {
+    public double calcF() {
         this.f = g + h;
         return f;
     } 
@@ -86,9 +105,31 @@ public class Vertex {
     }
     
     
-    public void setH(double h){
-        this.h = h;
+    public void setH(Vertex previous){
+        if (previous==null)
+            return;
+            
+        if(previous.getHeight()>height)
+            h = distance - angle;
+        else
+            h = distance + angle;
+        
+        
     }
+
+    public void setH(int x){
+       h = x;
+        
+    }
+    public double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
+    
+    
 }
 
 

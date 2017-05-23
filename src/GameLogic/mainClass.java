@@ -67,6 +67,7 @@ public class mainClass extends SimpleApplication {
         rootNode.detachAllChildren();
         Planet planet = new Planet(assetManager, rootNode, setting);
         rootNode.attachChild(planet.getPlanet());
+        rootNode.attachChild(planet.getNavMesh());
         
     }
     

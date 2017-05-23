@@ -13,7 +13,9 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Sphere;
 
 /**
  *
@@ -22,7 +24,7 @@ import com.jme3.scene.shape.Box;
 public class Planet {
     Node solids; //whatever can stop the sight of the pursuer (planet/obstacles..)
     Geometry planet;
-    
+    Geometry navMesh;
     
     
     
@@ -31,12 +33,30 @@ public class Planet {
         planet = makeFloor(assetManager);
         solids = new Node();
         solids.attachChild(planet);
+        navMesh = makeSphere(assetManager,"navMesh",0,0,0);
+        
+    }
+    
+     protected Geometry makeSphere(AssetManager assetManager,String name, float x, float y, float z) {
+        Sphere sphere = new Sphere(50, 50, 100);
+        Geometry ball = new Geometry(name, sphere);
+       // ball.scale(0.05f);
+        ball.setLocalTranslation(x, y, z);
+         Material matWireframe = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matWireframe.setColor("Color", ColorRGBA.Green);
+        matWireframe.getAdditionalRenderState().setWireframe(true);
+        ball.setMaterial(matWireframe);
+      
+        if(ball==null)
+            System.out.println("WHAT");
+      //  ball.lookAt(box.getLocalTranslation(), Vector3f.UNIT_Y);
+        return ball;
     }
     
     public Planet(AssetManager assetManager, Node rootNode, Settings setting){
         
         planet = new Geometry("Planet");
-        
+         navMesh = makeSphere(assetManager,"navMesh",0,0,0);
         DirectionalLight sun = new DirectionalLight();
         
         sun.setDirection(new Vector3f(-0.1f, -0.7f, -1.0f));
@@ -77,6 +97,10 @@ public class Planet {
 
     public Geometry getPlanet() {
         return planet;
+    }
+
+    public Geometry getNavMesh() {
+        return navMesh;
     }
     
     
