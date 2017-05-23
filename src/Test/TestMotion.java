@@ -86,6 +86,7 @@ public class TestMotion extends SimpleApplication{
         mat1.setColor("Color", ColorRGBA.Red);
         ball.setMaterial(mat1);
       
+
         ball.lookAt(box.getLocalTranslation(), Vector3f.UNIT_Y);
         return ball;
     }
