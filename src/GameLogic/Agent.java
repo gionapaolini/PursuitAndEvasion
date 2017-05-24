@@ -10,6 +10,7 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.material.Material;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
+import com.jme3.math.Triangle;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -170,33 +171,46 @@ public abstract class Agent {
     }
     
     public void moveOnGrid(float tpf, Planet planet){
-        if(!moving){
+        if(!moving &&  System.currentTimeMillis()-lastMovementTime>1000){
             double bestTime = 0;
             Vertex bestVertex = null;
             for(Vertex v: currentVertex.getNeighbors()){
+                System.out.println(v.getTime());
                 if(v.getTime()>=bestTime){
                     bestVertex = v;
                     bestTime = v.getTime();
                 }
             }
+            currentVertex.incrementTimeNeighbour(0);
             currentVertex = bestVertex;
             
+           
+            
             moveTo(currentVertex.getTriangle().getCenter(), planet);
-            currentVertex.resetTime();
+            
             moving = true;
             lastMovementTime = System.currentTimeMillis();
             
-        }else{
+        }else if(moving){
            Vector3f forward = nodeAgent.getLocalRotation().mult(Vector3f.UNIT_Z).mult(tpf * 10);
            nodeAgent.move(forward);
            repositionOnNavMesh(planet);
           
-           if(System.currentTimeMillis() - lastMovementTime >500){
-               
-
+           if(onTriangle(currentVertex.getTriangle(),planet)){
+              
                moving = false;
            }
         }
+    }
+    
+    public boolean onTriangle(Triangle tri, Planet planet){
+        Ray ray = new Ray(planet.getNavMesh().getLocalTranslation(),nodeAgent.getLocalTranslation());
+        CollisionResults results = new CollisionResults();
+        tri.collideWith(ray, results);
+        if(results.size()>0){
+            return true;
+        }
+        return false;
     }
     
     public void moveTo(Vector3f point,Planet planet){

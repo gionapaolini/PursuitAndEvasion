@@ -39,7 +39,7 @@ public class Planet {
     }
     
      protected Geometry makeSphere(AssetManager assetManager,String name, float x, float y, float z) {
-        Sphere sphere = new Sphere(30, 30, 60);
+        Sphere sphere = new Sphere(15, 15, 60);
         Geometry ball = new Geometry(name, sphere);
        // ball.scale(0.05f);
         ball.setLocalTranslation(x, y, z);

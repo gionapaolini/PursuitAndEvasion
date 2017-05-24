@@ -34,9 +34,9 @@ public class Vertex {
         this.triangle = triangle;
     }
     
-    public void incrementTimeNeighbour(){
+    public void incrementTimeNeighbour(double time){
         for(Vertex v: neighbors){
-            v.setTime(1.0f);
+            v.setTime(time);
         }
     }
 
