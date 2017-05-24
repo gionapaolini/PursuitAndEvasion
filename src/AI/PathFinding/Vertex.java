@@ -24,6 +24,7 @@ public class Vertex {
     private double angle;
     private double distance;
     private ArrayList<Vertex> neighbors;
+
     
     public Vertex(Triangle triangle){
         this.g = Integer.MAX_VALUE;
@@ -32,11 +33,22 @@ public class Vertex {
         this.neighbors = new ArrayList();
         this.triangle = triangle;
     }
+    
+    public void incrementTimeNeighbour(){
+        for(Vertex v: neighbors){
+            v.setTime(1.0f);
+        }
+    }
 
     public double getHeight() {
         return height;
     }
-
+    public void incrementTime(){
+        time+=1;
+    }
+    public void resetTime(){
+        time = 0;
+    }
     public void setHeight(double height) {
         this.height = height;
     }

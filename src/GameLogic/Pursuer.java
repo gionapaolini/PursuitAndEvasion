@@ -44,7 +44,7 @@ public class Pursuer extends Agent{
     @Override
     public void setDefault(){
         super.setDefault();
-        field_of_sight = 90;
+        field_of_sight = 5;
     }
     
     @Override

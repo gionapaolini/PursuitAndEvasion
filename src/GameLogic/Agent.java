@@ -5,6 +5,7 @@
  */
 package GameLogic;
 
+import AI.PathFinding.Vertex;
 import com.jme3.collision.CollisionResults;
 import com.jme3.material.Material;
 import com.jme3.math.Quaternion;
@@ -22,6 +23,7 @@ import java.util.List;
  */
 public abstract class Agent {
     
+    
     protected Geometry body;
     protected List<Agent> agents;
     protected static int nAgent=0;
@@ -32,8 +34,9 @@ public abstract class Agent {
     
     protected List<Power> currentPowers;
     
-    protected boolean invisible;
-    
+    protected boolean invisible, moving;
+    protected Vertex currentVertex;
+    protected double lastMovementTime;
     public Agent(){
         agents = new ArrayList<>();
         currentPowers  = new ArrayList<>();
@@ -57,6 +60,14 @@ public abstract class Agent {
             randomZ+=200;
         
         nodeAgent.setLocalTranslation(randomX,randomY,randomZ);
+    }
+
+    public boolean isMoving() {
+        return moving;
+    }
+
+    public void setMoving(boolean moving) {
+        this.moving = moving;
     }
     
     public void setDefault(){
@@ -104,6 +115,16 @@ public abstract class Agent {
         this.currentPowers = currentPowers;
     }
 
+    public Vertex getCurrentVertex() {
+        return currentVertex;
+    }
+
+    public void setCurrentVertex(Vertex currentVertex) {
+        this.currentVertex = currentVertex;
+    }
+    
+    
+
     public boolean isInvisible() {
         return invisible;
     }
@@ -148,6 +169,65 @@ public abstract class Agent {
         
     }
     
+    public void moveOnGrid(float tpf, Planet planet){
+        if(!moving){
+            double bestTime = 0;
+            Vertex bestVertex = null;
+            for(Vertex v: currentVertex.getNeighbors()){
+                if(v.getTime()>=bestTime){
+                    bestVertex = v;
+                    bestTime = v.getTime();
+                }
+            }
+            currentVertex = bestVertex;
+            
+            moveTo(currentVertex.getTriangle().getCenter(), planet);
+            currentVertex.resetTime();
+            moving = true;
+            lastMovementTime = System.currentTimeMillis();
+            
+        }else{
+           Vector3f forward = nodeAgent.getLocalRotation().mult(Vector3f.UNIT_Z).mult(tpf * 10);
+           nodeAgent.move(forward);
+           repositionOnNavMesh(planet);
+          
+           if(System.currentTimeMillis() - lastMovementTime >500){
+               
+
+               moving = false;
+           }
+        }
+    }
+    
+    public void moveTo(Vector3f point,Planet planet){
+        Ray ray = new Ray(planet.getNavMesh().getLocalTranslation(),nodeAgent.getLocalTranslation());
+        CollisionResults results = new CollisionResults();
+        planet.getNavMesh().collideWith(ray, results);
+        Vector3f contactPoint = results.getFarthestCollision().getContactPoint();
+        Vector3f normalPoint = results.getFarthestCollision().getContactNormal();
+        
+        Vector3f direction = getDirectionToPoint(normalPoint,point);
+        
+        Quaternion rotationQuat = new Quaternion();
+        rotationQuat.lookAt(direction,normalPoint);
+        nodeAgent.setLocalRotation(rotationQuat);
+        
+        reposition(contactPoint,normalPoint);
+    }
+    
+    public Vector3f getDirectionToPoint(Vector3f normal, Vector3f point){
+        Vector3f pointNewOrigin = point.add(nodeAgent.getLocalTranslation().mult(-1));
+        //projection of the point
+        Vector3f projection = getProjectionOntoPlane(normal,pointNewOrigin);
+        return projection;
+        
+    }
+    
+    public void setPosition(Vector3f pos){
+        nodeAgent.setLocalTranslation(pos.x,pos.y,pos.z);
+    }
+    
+    
     public void rotate(float tpf){
         nodeAgent.rotate(0,tpf,0);
     }
@@ -189,13 +269,30 @@ public abstract class Agent {
         
     }
     
+     private void repositionOnNavMesh(Planet planetObj){
+        Geometry planet = planetObj.getNavMesh();
+       Ray ray = new Ray(planet.getLocalTranslation(),nodeAgent.getLocalTranslation());
+        CollisionResults results = new CollisionResults();
+        planet.collideWith(ray, results);
+        Vector3f contactPoint = results.getFarthestCollision().getContactPoint();
+        Vector3f normalPoint = results.getFarthestCollision().getContactNormal();
+
+        nodeAgent.setLocalTranslation(contactPoint);
+        //System.out.println(results.getFarthestCollision().getContactNormal());
+        Vector3f rotation = getProjectionOntoPlane(normalPoint,nodeAgent.getLocalRotation().getRotationColumn(2));
+        Quaternion rotationQuat = new Quaternion();
+        rotationQuat.lookAt(rotation,normalPoint);
+        nodeAgent.setLocalRotation(rotationQuat);
+        
+    }
+    
     
     private Vector3f getProjectionOntoPlane(Vector3f n, Vector3f v){
         
     
         Vector3f projection = n.cross(v.cross(n));
       
-        System.out.println(projection);
+       // System.out.println(projection);
         
         return projection;
     }

@@ -7,6 +7,7 @@ package AI.PathFinding;
 
 import com.jme3.math.Triangle;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Mesh;
 import java.util.ArrayList;
 
 /**
@@ -23,9 +24,63 @@ public class GraphA {
       
        
    }
+   public GraphA(Mesh m){
+      int l = m.getTriangleCount();
+      Triangle[] triangleList = new Triangle[l];
+      for(int i=0;i<l;i++){
+          triangleList[i] = new Triangle();
+          m.getTriangle(i, triangleList[i]);
+          //System.out.println(triangles[i].get1()+", "+triangles[i].get2()+", "+triangles[i].get3());
+      }
+      System.out.println("HERE");
+     this.vertices = new ArrayList();
+           System.out.println(triangleList.length);
+
+       for(int i=0;i<triangleList.length;i++){
+            System.out.println("HERE"+i);
+
+            Triangle current = triangleList[i];
+            Vertex currentVertex;
+            if(notExist(current)){
+                
+                 currentVertex = new Vertex(current);
+                  insertVertex(currentVertex);
+                 
+                 
+                 
+            }else{
+                currentVertex = getVertexFromTriangle(current);
+            }
+            setValue(currentVertex);
+            for(int j=i+1;j<triangleList.length;j++){
+                Triangle secondTriangle = triangleList[j];
+                Vertex secondVertex;
+                if(notExist(secondTriangle)){
+                    secondVertex = new Vertex(secondTriangle);
+                    insertVertex(secondVertex);
+                 
+                }else{
+                    secondVertex = getVertexFromTriangle(secondTriangle);
+                }
+                 
+                if(isNeighbour(current,secondTriangle)){
+                    insertEdge(currentVertex,secondVertex);
+                    Triangle tri = currentVertex.getTriangle();
+                    Triangle tri1 = secondVertex.getTriangle();
+                    
+                    //System.out.println(tri.get1()+","+tri.get2()+","+tri.get3()+"ADDED"+tri1.get1()+","+tri1.get2()+","+tri1.get3());
+                }
+                
+            }
+            
+        }
+             System.out.println("HERE2");
+
+       
+   }
    public GraphA(Triangle[] triangleList){
        this.vertices = new ArrayList();
-    for(int i=0;i<triangleList.length;i++){
+       for(int i=0;i<triangleList.length;i++){
             
             Triangle current = triangleList[i];
             Vertex currentVertex;
@@ -64,7 +119,11 @@ public class GraphA {
         }
    }
    
-   
+   public void incrementTime(){
+       for(Vertex v: vertices){
+           v.incrementTime();
+       }
+   }
     private boolean isNeighbour(Triangle first, Triangle second){
         if(first.get1().equals(second.get1()) || first.get1().equals(second.get2()) || first.get1().equals(second.get3())
                 || first.get2().equals(second.get1()) || first.get2().equals(second.get2()) || first.get2().equals(second.get3())

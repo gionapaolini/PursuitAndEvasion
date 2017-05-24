@@ -8,6 +8,7 @@ package GameLogic;
 import com.jme3.asset.AssetManager;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.Light;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -38,7 +39,7 @@ public class Planet {
     }
     
      protected Geometry makeSphere(AssetManager assetManager,String name, float x, float y, float z) {
-        Sphere sphere = new Sphere(50, 50, 100);
+        Sphere sphere = new Sphere(30, 30, 60);
         Geometry ball = new Geometry(name, sphere);
        // ball.scale(0.05f);
         ball.setLocalTranslation(x, y, z);
@@ -60,6 +61,9 @@ public class Planet {
         DirectionalLight sun = new DirectionalLight();
         
         sun.setDirection(new Vector3f(-0.1f, -0.7f, -1.0f));
+        for(Light light: rootNode.getWorldLightList()){
+           rootNode.removeLight(light);
+        }
         rootNode.addLight(sun);
         PlanetMeshGen planetMeshGen = new PlanetMeshGen();
         
