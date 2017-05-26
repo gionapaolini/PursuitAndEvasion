@@ -284,7 +284,7 @@ public abstract class Agent {
     }
     
      private void repositionOnNavMesh(Planet planetObj){
-        Geometry planet = planetObj.getNavMesh();
+        Geometry planet = planetObj.getPlanet();
        Ray ray = new Ray(planet.getLocalTranslation(),nodeAgent.getLocalTranslation());
         CollisionResults results = new CollisionResults();
         planet.collideWith(ray, results);
