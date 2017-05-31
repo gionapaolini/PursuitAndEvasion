@@ -25,7 +25,7 @@ public class Escaper extends Agent{
         colorAlive = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         colorAlive.setColor("Color", ColorRGBA.White);
         colorDead = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        colorDead.setColor("Color", ColorRGBA.Black);
+        colorDead.setColor("Color", ColorRGBA.Red);
         body.setMaterial(colorAlive);
   
     }

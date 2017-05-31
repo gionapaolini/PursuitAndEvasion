@@ -24,6 +24,7 @@ public class Vertex {
     private double angle;
     private double distance;
     private ArrayList<Vertex> neighbors;
+    private boolean safe;
 
     
     public Vertex(Triangle triangle){
@@ -46,6 +47,17 @@ public class Vertex {
     public void incrementTime(){
         time+=1;
     }
+
+    public boolean isSafe() {
+        return safe;
+    }
+
+    public void setSafe(boolean safe) {
+        this.safe = safe;
+    }
+    
+    
+    
     public void resetTime(){
         time = 0;
     }
@@ -139,6 +151,10 @@ public class Vertex {
 
     public void setDistance(double distance) {
         this.distance = distance;
+    }
+
+    public void setUnsafe() {
+        safe = false;
     }
     
     

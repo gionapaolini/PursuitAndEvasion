@@ -26,11 +26,12 @@ public abstract class Agent {
     
     
     protected Geometry body;
+    protected Vector3f currentVel;
     protected List<Agent> agents;
     protected static int nAgent=0;
     protected Node nodeAgent; //attach to it whatever needs to rotate/translate with the agent
     
-    protected float velocity,
+    protected float maxVel,
                    size;
     
     protected List<Power> currentPowers;
@@ -61,6 +62,8 @@ public abstract class Agent {
             randomZ+=200;
         
         nodeAgent.setLocalTranslation(randomX,randomY,randomZ);
+        
+        currentVel = new Vector3f(0,0,0);
     }
 
     public boolean isMoving() {
@@ -72,7 +75,7 @@ public abstract class Agent {
     }
     
     public void setDefault(){
-        velocity = 10;
+        maxVel = 0.4f;
         size =10;
         invisible = false;
     }
@@ -91,7 +94,7 @@ public abstract class Agent {
         currentPowers.clear();
     }
     public void setVelocity(float vel){
-        velocity = vel;
+        maxVel = vel;
     }
     public void setSize(float s){
         float scale =  s/size;
@@ -135,7 +138,7 @@ public abstract class Agent {
     }
 
     public double getVelocity() {
-        return velocity;
+        return maxVel;
     }
 
     public double getSize() {
@@ -152,8 +155,14 @@ public abstract class Agent {
     
     public void move(float tpf, Planet planet){
             
-       
-       Vector3f forward = nodeAgent.getLocalRotation().mult(Vector3f.UNIT_Z).mult(tpf * 10);
+         float multiplier = 10;
+           Vector3f currentPosition = nodeAgent.getLocalTranslation();
+           Vector3f center = planet.getPlanet().getLocalTranslation(); 
+           double distance = getDistance(center,currentPosition);
+           double difference  =  planet.getSettings().getRadius() - distance;
+           multiplier += (difference);
+       System.out.println(difference);
+       Vector3f forward = nodeAgent.getLocalRotation().mult(Vector3f.UNIT_Z).mult(tpf * multiplier);
        nodeAgent.move(forward);
        reposition(planet);
        
@@ -171,50 +180,73 @@ public abstract class Agent {
     }
     
     public void moveOnGrid(float tpf, Planet planet){
-        if(!moving &&  System.currentTimeMillis()-lastMovementTime>1000){
+       
+        if(!moving &&  System.currentTimeMillis()-lastMovementTime>3000){
+            System.out.println("NOT MOVING");
             double bestTime = 0;
             Vertex bestVertex = null;
             for(Vertex v: currentVertex.getNeighbors()){
-                System.out.println(v.getTime());
-                if(v.getTime()>=bestTime){
-                    bestVertex = v;
-                    bestTime = v.getTime();
+                for(Vertex v1: v.getNeighbors()){
+                    System.out.println(v1.getTime());
+                    if(v1.getTime()>bestTime){
+                        bestVertex = v1;
+                        bestTime = v1.getTime();
+                    }else if(v1.getTime()==bestTime && Math.random()>=0.75){
+                        bestVertex = v1;
+                        bestTime = v1.getTime();
+                    }
                 }
             }
-            currentVertex.incrementTimeNeighbour(0);
+            bestVertex.incrementTimeNeighbour(0);
+            bestVertex.setTime(0);
+            
             currentVertex = bestVertex;
+   
+            System.out.println(currentVertex.getTriangle().getCenter()); 
             
            
             
-            moveTo(currentVertex.getTriangle().getCenter(), planet);
+        //   moveTo(currentVertex.getTriangle().getCenter(), planet);
             
             moving = true;
             lastMovementTime = System.currentTimeMillis();
             
         }else if(moving){
-           Vector3f forward = nodeAgent.getLocalRotation().mult(Vector3f.UNIT_Z).mult(tpf * 10);
+            moveTo(currentVertex.getTriangle().getCenter(), planet);
+           //////////ADD DIFFERENT SPEED
+           float multiplier = 10;
+           Vector3f currentPosition = nodeAgent.getLocalTranslation();
+           Vector3f center = planet.getPlanet().getLocalTranslation(); 
+           double distance = getDistance(center,currentPosition);
+           double difference  =  planet.getSettings().getRadius() - distance;
+           multiplier += (difference);
+          /*
+           if(difference>20)
+               multiplier = 5;
+           else if(difference<-20)
+               multiplier = 15;
+           else if()
+           */
+           Vector3f forward = nodeAgent.getLocalRotation().mult(Vector3f.UNIT_Z).mult(tpf * multiplier);
            nodeAgent.move(forward);
-           repositionOnNavMesh(planet);
-          
            if(onTriangle(currentVertex.getTriangle(),planet)){
-              
                moving = false;
            }
+           reposition(planet);
+          
+           
         }
     }
     
     public boolean onTriangle(Triangle tri, Planet planet){
-        Ray ray = new Ray(planet.getNavMesh().getLocalTranslation(),nodeAgent.getLocalTranslation());
+        Ray ray = new Ray(planet.getPlanet().getLocalTranslation(),nodeAgent.getLocalTranslation());
         CollisionResults results = new CollisionResults();
         tri.collideWith(ray, results);
-        if(results.size()>0){
-            return true;
-        }
-        return false;
+        return results.size()>0;
     }
     
     public void moveTo(Vector3f point,Planet planet){
-        Ray ray = new Ray(planet.getNavMesh().getLocalTranslation(),nodeAgent.getLocalTranslation());
+        Ray ray = new Ray(planet.getPlanet().getLocalTranslation(),nodeAgent.getLocalTranslation());
         CollisionResults results = new CollisionResults();
         planet.getNavMesh().collideWith(ray, results);
         Vector3f contactPoint = results.getFarthestCollision().getContactPoint();
@@ -256,8 +288,9 @@ public abstract class Agent {
     
     private void reposition(Vector3f contactPoint, Vector3f normalPoint){
          
-        
-        nodeAgent.setLocalTranslation(contactPoint);
+        float length = contactPoint.length();
+        Vector3f newLocation = contactPoint.normalize().mult(length+2);
+        nodeAgent.setLocalTranslation(newLocation);
         //System.out.println(results.getFarthestCollision().getContactNormal());
         Vector3f rotation = getProjectionOntoPlane(normalPoint,nodeAgent.getLocalRotation().getRotationColumn(2));
         Quaternion rotationQuat = new Quaternion();
@@ -268,36 +301,44 @@ public abstract class Agent {
     
     private void reposition(Planet planetObj){
         Geometry planet = planetObj.getPlanet();
-       Ray ray = new Ray(planet.getLocalTranslation(),nodeAgent.getLocalTranslation());
+       Ray ray = new Ray(planet.getLocalTranslation(),nodeAgent.getLocalTranslation().subtract(planet.getLocalTranslation()).normalizeLocal());
         CollisionResults results = new CollisionResults();
         planet.collideWith(ray, results);
         Vector3f contactPoint = results.getFarthestCollision().getContactPoint();
         Vector3f normalPoint = results.getFarthestCollision().getContactNormal();
-
-        nodeAgent.setLocalTranslation(contactPoint);
+        float length = contactPoint.length();
+        Vector3f newLocation = contactPoint.normalize().mult(length+2);
+        nodeAgent.setLocalTranslation(newLocation);
         //System.out.println(results.getFarthestCollision().getContactNormal());
         Vector3f rotation = getProjectionOntoPlane(normalPoint,nodeAgent.getLocalRotation().getRotationColumn(2));
         Quaternion rotationQuat = new Quaternion();
         rotationQuat.lookAt(rotation,normalPoint);
         nodeAgent.setLocalRotation(rotationQuat);
+        setCurrentVel(nodeAgent.getLocalRotation().getRotationColumn(2).normalize());
         
     }
     
      private void repositionOnNavMesh(Planet planetObj){
-        Geometry planet = planetObj.getPlanet();
-       Ray ray = new Ray(planet.getLocalTranslation(),nodeAgent.getLocalTranslation());
+        Geometry planet = planetObj.getNavMesh();
+        Ray ray = new Ray(planet.getLocalTranslation(),nodeAgent.getLocalTranslation());
+     
         CollisionResults results = new CollisionResults();
         planet.collideWith(ray, results);
+     
         Vector3f contactPoint = results.getFarthestCollision().getContactPoint();
         Vector3f normalPoint = results.getFarthestCollision().getContactNormal();
+     
+        float length = contactPoint.length();
+        Vector3f newLocation = contactPoint.normalize().mult(length+2);
+        nodeAgent.setLocalTranslation(newLocation);
 
-        nodeAgent.setLocalTranslation(contactPoint);
         //System.out.println(results.getFarthestCollision().getContactNormal());
         Vector3f rotation = getProjectionOntoPlane(normalPoint,nodeAgent.getLocalRotation().getRotationColumn(2));
         Quaternion rotationQuat = new Quaternion();
         rotationQuat.lookAt(rotation,normalPoint);
         nodeAgent.setLocalRotation(rotationQuat);
-        
+        setCurrentVel(nodeAgent.getLocalRotation().getRotationColumn(2).normalize());
+
     }
     
     
@@ -311,5 +352,123 @@ public abstract class Agent {
         return projection;
     }
     
+    private double getDistance(Vector3f start, Vector3f end){
+        return Math.sqrt(Math.pow(start.x - end.x,2)+Math.pow(start.y - end.y,2)+Math.pow(start.z - end.z,2));
+    }
+
+    public Vector3f getCurrentVel() {
+        return currentVel;
+    }
+
+    public void setCurrentVel(Vector3f currentVel) {
+        this.currentVel = currentVel;
+    }
     
+    
+    
+    public Vector3f seek(Agent target){
+        Vector3f targetPos = target.getNodeAgent().getWorldTranslation();
+
+        Vector3f desideredVel = targetPos.add(nodeAgent.getWorldTranslation().mult(-1)).normalize().mult(maxVel);
+        return desideredVel.add(currentVel.mult(-1));
+        
+    }
+    public Vector3f flee(Agent target){
+        Vector3f targetPos = target.getNodeAgent().getWorldTranslation();
+
+        Vector3f desideredVel = nodeAgent.getWorldTranslation().add(targetPos.mult(-1)).normalize().mult(maxVel);
+        return desideredVel.add(currentVel.mult(-1));
+        
+    }
+    
+    public Vector3f seek(Vector3f target){
+        Vector3f targetPos = target;
+
+        Vector3f desideredVel = targetPos.add(nodeAgent.getWorldTranslation().mult(-1)).normalize().mult(maxVel);
+        return desideredVel.add(currentVel.mult(-1));
+        
+    }
+    public Vector3f flee(Vector3f target){
+        Vector3f targetPos = target;
+
+        Vector3f desideredVel = nodeAgent.getWorldTranslation().add(targetPos.mult(-1)).normalize().mult(maxVel);
+        return desideredVel.add(currentVel.mult(-1));
+        
+    }
+     
+    public Vector3f pursue(Agent target){
+        float t = 3;
+        
+        Vector3f dist = target.getNodeAgent().getWorldTranslation().add(nodeAgent.getWorldTranslation().mult(-1));
+        t = dist.length() / maxVel;
+        
+        Vector3f targetPos = target.getNodeAgent().getWorldTranslation();
+        Vector3f targetVel = target.getCurrentVel();
+        
+        Vector3f futurePos = targetPos.add(targetVel.mult(t));
+        return seek(futurePos);
+    }
+    
+    public Vector3f evade(Agent target){
+        float t = 3;
+        
+        Vector3f dist = target.getNodeAgent().getWorldTranslation().add(nodeAgent.getWorldTranslation().mult(-1));
+        t = dist.length() / maxVel;
+        
+        Vector3f targetPos = target.getNodeAgent().getWorldTranslation();
+        Vector3f targetVel = target.getCurrentVel();
+        
+        Vector3f futurePos = targetPos.add(targetVel.mult(t));
+        return flee(futurePos);
+    }
+    
+    public void moveEvading(Planet planetObj){
+        Vector3f currentPosition = nodeAgent.getLocalTranslation();
+        Vector3f center = planetObj.getPlanet().getLocalTranslation(); 
+        double distance = getDistance(center,currentPosition);
+        double difference  =  planetObj.getSettings().getRadius() - distance;
+        difference = difference/50;
+        maxVel = 0.2f;
+        maxVel -= difference;
+       float minDistant = 100000;
+       Agent closestAgent = null;
+        for(Agent agent: agents){
+             float dist = agent.getNodeAgent().getWorldTranslation().add(nodeAgent.getWorldTranslation().mult(-1)).length();
+             if(dist<minDistant){
+                 minDistant = dist;
+                 closestAgent = agent;
+             }
+
+        }
+        setCurrentVel(currentVel.add(evade(closestAgent)));
+        Geometry planet = planetObj.getPlanet();
+        setPosition(nodeAgent.getWorldTranslation().add(currentVel));
+        repositionWithVel(planet); 
+    }
+    
+     
+    private void repositionWithVel(Geometry planet){
+        
+        Ray ray = new Ray(planet.getLocalTranslation(),nodeAgent.getLocalTranslation().subtract(planet.getLocalTranslation()).normalizeLocal());
+        CollisionResults results = new CollisionResults();
+        planet.collideWith(ray, results);
+        if(results.size()<=0)
+            return;
+        Vector3f contactPoint = results.getFarthestCollision().getContactPoint();
+        Vector3f normalPoint = results.getFarthestCollision().getContactNormal();
+        float length = contactPoint.length();
+        
+        Vector3f newLocation = contactPoint.normalize().mult(length+2);
+        nodeAgent.setLocalTranslation(newLocation);        
+        
+        Vector3f rotation = getProjectionOntoPlane(normalPoint,currentVel);
+        
+        float magnitude = currentVel.length();
+        Quaternion rotationQuat = new Quaternion();
+        rotationQuat.lookAt(rotation,normalPoint);
+        nodeAgent.setLocalRotation(rotationQuat);
+        setCurrentVel(nodeAgent.getLocalRotation().getRotationColumn(2).normalize().mult(magnitude));
+        
+    }
+     
 }

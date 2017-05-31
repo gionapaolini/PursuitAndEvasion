@@ -244,6 +244,14 @@ public class GraphA {
         }
         
     }
+
+    public ArrayList<Vertex> getCopyVertexList() {
+       ArrayList<Vertex> copy = new  ArrayList<Vertex>();
+       for(Vertex v: vertices){
+           copy.add(v);
+       }
+       return copy;
+    }
     
     
     

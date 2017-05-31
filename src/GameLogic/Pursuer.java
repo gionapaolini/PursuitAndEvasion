@@ -44,7 +44,7 @@ public class Pursuer extends Agent{
     @Override
     public void setDefault(){
         super.setDefault();
-        field_of_sight = 5;
+        field_of_sight = 50;
     }
     
     @Override
@@ -60,7 +60,7 @@ public class Pursuer extends Agent{
         return field_of_sight;
     }
   
-    public void watchOut(Node notAgents){
+    public void watchOut(Node notAgents, Planet planet){
       
         for(Agent escaper: agents){
            
@@ -68,15 +68,21 @@ public class Pursuer extends Agent{
             if(e.isDied() || e.isInvisible()){
                 continue;
             }
-            Ray ray = new Ray(body.getLocalTranslation(),escaper.getBody().getLocalTranslation());
-            CollisionResults results = new CollisionResults();
-            notAgents.collideWith(ray, results);
+           // Ray ray = new Ray(body.getLocalTranslation(),escaper.getBody().getLocalTranslation());
+           Ray ray = new Ray(nodeAgent.getWorldTranslation(),escaper.getNodeAgent().getWorldTranslation().subtract(nodeAgent.getWorldTranslation()).normalizeLocal());
+           
+           
+           CollisionResults results = new CollisionResults();
+           planet.getPlanet().collideWith(ray, results);
             
       
-            if (results.size() ==0) {
+            if (results.size()<=0) {
               
                 if(checkInSight(escaper)){
                      e.die();
+                    //match.pause();
+                     createLine(e, planet.rootNode);
+                     
                 }
 
             }
@@ -157,6 +163,17 @@ public class Pursuer extends Agent{
             nodeAgent.attachChild(l2);
         }
     
+    }
+
+    private void createLine(Escaper e, Node rootNode) {
+        
+        Geometry line = new Geometry("lineee", new Line(nodeAgent.getWorldTranslation(),e.getNodeAgent().getWorldTranslation()));
+        line.setMaterial(blue);
+        rootNode.attachChild(line);
+        
+        
+        
+        
     }
     
     

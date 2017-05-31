@@ -10,7 +10,11 @@ import GameLogic.Planet;
 import GameLogic.Pursuer;
 import GameLogic.Settings;
 import com.jme3.app.SimpleApplication;
+import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
+import com.jme3.scene.control.BillboardControl;
 import com.jme3.system.AppSettings;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +28,11 @@ public class TestGuardPlanetMesh extends SimpleApplication{
      GraphA graph;
     Pursuer pursuer, pursuer2, pursuer3, pursuer4;
     Planet planet;
+    
+    Node[] bb;
+    BitmapText[] times;
+    BillboardControl[] control;
+    
  public static void main(String[] args) {
         TestGuardPlanetMesh app = new TestGuardPlanetMesh();
         AppSettings settings = new AppSettings(true);
@@ -44,10 +53,11 @@ public class TestGuardPlanetMesh extends SimpleApplication{
          rootNode.attachChild(planet.getPlanet());
          rootNode.attachChild(planet.getNavMesh());
          graph = new GraphA(planet.getNavMesh().getMesh());
+         
         pursuer = new Pursuer(assetManager);
-        pursuer.setCurrentVertex(graph.getVertices().get(40));
-        graph.getVertices().get(40).incrementTimeNeighbour(1.0f);
-        pursuer.setPosition(graph.getVertices().get(40).getTriangle().getCenter());
+        pursuer.setCurrentVertex(graph.getVertices().get(247));
+       // graph.getVertices().get(40).incrementTimeNeighbour(1.0f);
+        pursuer.setPosition(graph.getVertices().get(247).getTriangle().getCenter());
         rootNode.attachChild(pursuer.getNodeAgent());
         
         pursuer2 = new Pursuer(assetManager);
@@ -67,6 +77,33 @@ public class TestGuardPlanetMesh extends SimpleApplication{
         graph.getVertices().get(30).incrementTimeNeighbour(1.0f);
         pursuer4.setPosition(graph.getVertices().get(30).getTriangle().getCenter());
         rootNode.attachChild(pursuer4.getNodeAgent());
+        
+        bb = new Node[graph.getVertices().size()];
+        control = new BillboardControl[graph.getVertices().size()];
+     
+         
+        BitmapFont newFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
+        times = new BitmapText[graph.getVertices().size()];
+        for(int i=0;i<times.length;i++){
+            
+            times[i] = new BitmapText(newFont, false);
+            times[i].setSize(1.5f);
+            times[i].setText("0");
+            times[i].setLocalTranslation(new Vector3f(0,0,0));
+            control[i]=new BillboardControl();
+            bb[i] = new Node("node"+i);
+            bb[i].setLocalTranslation(graph.getVertices().get(i).getTriangle().getCenter());
+            bb[i].addControl(control[i]);
+            bb[i].attachChild(times[i]);
+            rootNode.attachChild(bb[i]);
+        }
+ 
+     
+        
+        
+ 
+       
+        
         Thread one = new Thread() {
          public void run() {
              while(1==1){
@@ -85,6 +122,8 @@ public class TestGuardPlanetMesh extends SimpleApplication{
 
         one.start();
         
+        
+        
      
 
   
@@ -97,6 +136,12 @@ public class TestGuardPlanetMesh extends SimpleApplication{
          pursuer2.moveOnGrid(ftp, planet);
          pursuer3.moveOnGrid(ftp, planet);
          pursuer4.moveOnGrid(ftp, planet);
+         for(int i=0;i<times.length;i++){
+          
+            times[i].setText(""+graph.getVertices().get(i).getTime());
+           // times[i].setText(""+graph.getVertices().get(i).getTriangle().getCenter());
+          
+        }
     }
     
 }

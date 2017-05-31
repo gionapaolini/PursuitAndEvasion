@@ -32,8 +32,8 @@ public class Main extends SimpleApplication {
     
     Geometry agent, planet;
     Material red,blue;
-    Node agentNode;
-
+    Node agentNode, pyramidNode;
+    Vector3f lastNormal;
     public static void main(String[] args) {
         Main app = new Main();
         AppSettings settings = new AppSettings(true);
@@ -71,13 +71,37 @@ public class Main extends SimpleApplication {
         agentNode.attachChild(agent);
         agentNode.setLocalTranslation(0, 53, 0);
         rootNode.attachChild(agentNode);
+        pyramidNode = new Node();
+        rootNode.attachChild(pyramidNode);
         initKeys();
-
+        lastNormal = new Vector3f(0,1,0);
+        
     }
 
     @Override
     public void simpleUpdate(float tpf) {
-   
+        
+        
+        
+            rootNode.detachChildNamed("line1");
+            rootNode.detachChildNamed("line2");
+            rootNode.detachChildNamed("line3");
+            rootNode.detachChildNamed("line4");
+            rootNode.detachChildNamed("line5");
+            rootNode.detachChildNamed("line6");
+            rootNode.detachChildNamed("line7");
+            rootNode.detachChildNamed("line8");
+            rootNode.detachChildNamed("line9");
+            rootNode.detachChildNamed("line10");
+            rootNode.detachChildNamed("line11");
+            rootNode.detachChildNamed("line12");
+            
+            buildPyramid(agentNode.getLocalTranslation(),agentNode.getLocalRotation().getRotationColumn(2), lastNormal);
+
+            
+   /*
+        
+       
             agentNode.detachChildNamed("l1");
             agentNode.detachChildNamed("l2");
 
@@ -97,7 +121,7 @@ public class Main extends SimpleApplication {
 
             agentNode.attachChild(l1);
             agentNode.attachChild(l2);
-            
+            */
         
         
     }
@@ -120,8 +144,11 @@ public class Main extends SimpleApplication {
         planet.collideWith(ray, results);
         Vector3f contactPoint = results.getFarthestCollision().getContactPoint();
         Vector3f normalPoint = results.getFarthestCollision().getContactNormal();
-
-        agentNode.setLocalTranslation(contactPoint);
+        lastNormal = normalPoint;
+        float length = contactPoint.length();
+        Vector3f newLocation = contactPoint.normalize().mult(length+2);
+        agentNode.setLocalTranslation(newLocation);
+       
         //System.out.println(results.getFarthestCollision().getContactNormal());
         Vector3f rotation = getProjectionOntoPlane(normalPoint,agentNode.getLocalRotation().getRotationColumn(2));
         Quaternion rotationQuat = new Quaternion();
@@ -262,4 +289,83 @@ Vector2f mouseCoords = new Vector2f(inputManager.getCursorPosition());
     public void simpleRender(RenderManager rm) {
         //TODO: add render code
     }
+    
+    
+    public void buildPyramid(Vector3f eyePosition,Vector3f direction,Vector3f upVector){
+         
+         direction.normalize();
+         
+         Vector3f rightVector = direction.cross(upVector);
+         float nearDistance = 5;
+         float farDistance = 500;
+         float fov =90;
+         float aspectRatio = 16/12;
+         
+         float Hnear = (float) (2 * Math.tan(fov/2) * nearDistance);
+         float Wnear = Hnear*aspectRatio;
+         
+         float Hfar = (float) (2 * Math.tan(fov / 2) * farDistance);
+         float Wfar = Hfar * aspectRatio;
+         
+         Vector3f Cnear = eyePosition.add(direction.mult(nearDistance));
+         Vector3f Cfar = eyePosition.add(direction.mult(farDistance));
+         
+         Vector3f NTL,NTR,NBL,NBR,FTL,FTR,FBL,FBR;
+         
+         NTL = Cnear.add(upVector.mult(Hnear/2)).subtract(rightVector.mult(Wnear/2));
+         NTR = Cnear.add(upVector.mult(Hnear/2)).add(rightVector.mult(Wnear/2));
+         NBL = Cnear.subtract(upVector.mult(Hnear/2)).subtract(rightVector.mult(Wnear/2));
+         NBR = Cnear.subtract(upVector.mult(Hnear/2)).add(rightVector.mult(Wnear/2));
+         
+         FTL = Cfar.add(upVector.mult(Hfar/2)).subtract(rightVector.mult(Wfar/2));
+         FTR = Cfar.add(upVector.mult(Hfar/2)).add(rightVector.mult(Wfar/2));
+         FBL = Cfar.subtract(upVector.mult(Hfar/2)).subtract(rightVector.mult(Wfar/2));
+         FBR = Cfar.subtract(upVector.mult(Hfar/2)).add(rightVector.mult(Wfar/2));
+         
+         Geometry line1 = new Geometry("line1", new Line(eyePosition, FTL));
+         Geometry line2 = new Geometry("line2", new Line(eyePosition, FTR));
+         Geometry line3 = new Geometry("line3", new Line(eyePosition, FBL));
+         Geometry line4 = new Geometry("line4", new Line(eyePosition, FBR));
+         
+         Geometry line5 = new Geometry("line5", new Line(FTL, FTR));
+         Geometry line6 = new Geometry("line6", new Line(FTL, FBL));
+         Geometry line7 = new Geometry("line7", new Line(FBL, FBR));
+         Geometry line8 = new Geometry("line8", new Line(FBR, FTR));
+         
+         Geometry line9 = new Geometry("line9", new Line(NTL, NTR));
+         Geometry line10 = new Geometry("line10", new Line(NTL, NBL));
+         Geometry line11 = new Geometry("line11", new Line(NBL, NBR));
+         Geometry line12 = new Geometry("line12", new Line(NBR, NTR));
+         
+         
+         
+            line1.setMaterial(blue);
+            line2.setMaterial(blue);
+            line3.setMaterial(blue);
+            line4.setMaterial(blue);
+            line5.setMaterial(blue);
+            line6.setMaterial(blue);
+            line7.setMaterial(blue);
+            line8.setMaterial(blue);
+            line9.setMaterial(blue);
+            line10.setMaterial(blue);
+            line11.setMaterial(blue);
+            line12.setMaterial(blue);
+            
+            
+        rootNode.attachChild(line1);
+        rootNode.attachChild(line2);
+        rootNode.attachChild(line3);
+        rootNode.attachChild(line4);
+        rootNode.attachChild(line5);
+        rootNode.attachChild(line6);
+        rootNode.attachChild(line7);
+        rootNode.attachChild(line8);
+        rootNode.attachChild(line9);
+        rootNode.attachChild(line10);
+        rootNode.attachChild(line11);
+        rootNode.attachChild(line12);
+
+         
+     }
 }

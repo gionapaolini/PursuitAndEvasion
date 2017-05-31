@@ -26,7 +26,8 @@ public class Planet {
     Node solids; //whatever can stop the sight of the pursuer (planet/obstacles..)
     Geometry planet;
     Geometry navMesh;
-    
+    Settings settings;
+    Node rootNode;
     
     
     
@@ -39,7 +40,7 @@ public class Planet {
     }
     
      protected Geometry makeSphere(AssetManager assetManager,String name, float x, float y, float z) {
-        Sphere sphere = new Sphere(15, 15, 60);
+        Sphere sphere = new Sphere(15, 15, settings.getRadius()+1.4f);
         Geometry ball = new Geometry(name, sphere);
        // ball.scale(0.05f);
         ball.setLocalTranslation(x, y, z);
@@ -55,7 +56,8 @@ public class Planet {
     }
     
     public Planet(AssetManager assetManager, Node rootNode, Settings setting){
-        
+        settings = setting;
+        this.rootNode = rootNode;
         planet = new Geometry("Planet");
          navMesh = makeSphere(assetManager,"navMesh",0,0,0);
         DirectionalLight sun = new DirectionalLight();
@@ -82,6 +84,15 @@ public class Planet {
         
         solids = new Node();
         solids.attachChild(planet);
+        
+    }
+
+    public Settings getSettings() {
+        return settings;
+    }
+
+    public void setSettings(Settings settings) {
+        this.settings = settings;
     }
     
     
