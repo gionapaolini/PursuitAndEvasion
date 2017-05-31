@@ -1,6 +1,11 @@
 package Test;
 
+import AI.PathFinding.GraphA;
+import AI.PathFinding.Vertex;
+import GameLogic.Match;
+import GameLogic.Pursuer;
 import com.jme3.app.SimpleApplication;
+import com.jme3.asset.AssetManager;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.KeyInput;
@@ -17,11 +22,15 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
+import com.jme3.scene.VertexBuffer;
 
 import com.jme3.scene.shape.Line;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.system.AppSettings;
+import com.jme3.util.BufferUtils;
+import java.util.ArrayList;
 
 /**
  * This is the Main Class of your Game. You should only do initialization here.
@@ -30,10 +39,12 @@ import com.jme3.system.AppSettings;
  */
 public class Main extends SimpleApplication {
     
-    Geometry agent, planet;
+    Geometry agent, planet, mesh;
     Material red,blue;
-    Node agentNode, pyramidNode;
+    Node agentNode, pyramidNode, Dtriangles;
     Vector3f lastNormal;
+    GraphA graph;
+    Vector3f[] pointsPyramid;
     public static void main(String[] args) {
         Main app = new Main();
         AppSettings settings = new AppSettings(true);
@@ -50,12 +61,13 @@ public class Main extends SimpleApplication {
          flyCam.setDragToRotate(true);
        cam.setLocation(new Vector3f(0,100,100));
         cam.lookAt(new Vector3f(0,0,0), Vector3f.UNIT_Y);
-        Sphere world = new Sphere(100,100, 50);
+        Sphere world = new Sphere(100,100, 20);
         Sphere sphere = new Sphere(100,100,3);
         
         agentNode = new Node();
       
         planet = new Geometry("World", world);
+        mesh = makeSphere(assetManager,"mesh",0,0,0);
         agent = new Geometry("Agent", sphere);
         agent.setLocalTranslation(0, 0, 0);
         red = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -75,6 +87,13 @@ public class Main extends SimpleApplication {
         rootNode.attachChild(pyramidNode);
         initKeys();
         lastNormal = new Vector3f(0,1,0);
+        rootNode.attachChild(mesh);
+        graph = new GraphA(mesh.getMesh());
+        Dtriangles = new Node();
+        rootNode.attachChild(Dtriangles);
+        
+        pointsPyramid = new Vector3f[5];
+        
         
     }
 
@@ -97,7 +116,8 @@ public class Main extends SimpleApplication {
             rootNode.detachChildNamed("line12");
             
             buildPyramid(agentNode.getLocalTranslation(),agentNode.getLocalRotation().getRotationColumn(2), lastNormal);
-
+            selectDangerousTriangles();
+            showDangerousTriangles();
             
    /*
         
@@ -164,7 +184,7 @@ public class Main extends SimpleApplication {
         Vector3f n = new Vector3f(0,1,0);
         
         float sums = cp.dot(n);
-        System.out.println(n.x+"*X"+n.y+"*Y"+n.z+"*Z = "+sums);
+       // System.out.println(n.x+"*X"+n.y+"*Y"+n.z+"*Z = "+sums);
         
     }
     
@@ -178,7 +198,7 @@ public class Main extends SimpleApplication {
         double lenghtDirection = normal.length();
         double cos = upper/(lenghtNormal*lenghtDirection);
         double angle = Math.acos(cos);
-        System.out.println(Math.toDegrees(angle));
+     //   System.out.println(Math.toDegrees(angle));
         return Math.toDegrees(angle);
         
     }
@@ -188,7 +208,7 @@ public class Main extends SimpleApplication {
     
         Vector3f projection = n.cross(v.cross(n));
       
-        System.out.println(projection);
+  //      System.out.println(projection);
         
         return projection;
     }
@@ -322,6 +342,13 @@ Vector2f mouseCoords = new Vector2f(inputManager.getCursorPosition());
          FBL = Cfar.subtract(upVector.mult(Hfar/2)).subtract(rightVector.mult(Wfar/2));
          FBR = Cfar.subtract(upVector.mult(Hfar/2)).add(rightVector.mult(Wfar/2));
          
+         
+         pointsPyramid[0] = eyePosition;
+         pointsPyramid[1] = FTL;
+         pointsPyramid[2] = FTR;
+         pointsPyramid[3] = FBL;
+         pointsPyramid[4] = FBR;
+         
          Geometry line1 = new Geometry("line1", new Line(eyePosition, FTL));
          Geometry line2 = new Geometry("line2", new Line(eyePosition, FTR));
          Geometry line3 = new Geometry("line3", new Line(eyePosition, FBL));
@@ -368,4 +395,100 @@ Vector2f mouseCoords = new Vector2f(inputManager.getCursorPosition());
 
          
      }
+    
+    
+    
+     protected Geometry makeSphere(AssetManager assetManager,String name, float x, float y, float z) {
+        Sphere sphere = new Sphere(10, 10, 21.5f);
+        Geometry ball = new Geometry(name, sphere);
+       // ball.scale(0.05f);
+        ball.setLocalTranslation(x, y, z);
+         Material matWireframe = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matWireframe.setColor("Color", ColorRGBA.Green);
+        matWireframe.getAdditionalRenderState().setWireframe(true);
+        ball.setMaterial(matWireframe);
+      
+        if(ball==null)
+            System.out.println("WHAT");
+      //  ball.lookAt(box.getLocalTranslation(), Vector3f.UNIT_Y);
+        return ball;
+    }
+     
+     
+     
+    private void showDangerousTriangles() {
+        Dtriangles.detachAllChildren();
+        ArrayList<Vertex> vertices = graph.getVertices();
+        for(Vertex v: vertices){
+            if(v.isSafe())
+                continue;
+            Mesh m = new Mesh();
+            Vector3f[] points = { v.getTriangle().get1(), v.getTriangle().get2(),v.getTriangle().get3()};
+            Vector2f[] textCoord = {new Vector2f(1,1),new Vector2f(1,1),new Vector2f(1,1)}; 
+            int[] indices = {2,0,1};
+            
+            m.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(points));
+            m.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(textCoord));
+            m.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createIntBuffer(indices));
+            m.updateBound();
+            Geometry geo = new Geometry("triangle", m); // using our custom mesh object
+            Material mat = new Material(assetManager,
+                "Common/MatDefs/Misc/Unshaded.j3md");
+            mat.setColor("Color", ColorRGBA.Yellow);
+            geo.setMaterial(mat);
+            Dtriangles.attachChild(geo);
+        }
+    }
+    
+     public boolean insidePyramid(Vector3f object){
+       
+       int cnt = 0;
+       Ray ray = new Ray(object, Vector3f.UNIT_Y);
+     
+     
+        if ( ray.intersectWherePlanar(pointsPyramid[0], pointsPyramid[1], pointsPyramid[3], null) ) cnt++;
+        if ( ray.intersectWherePlanar(pointsPyramid[0], pointsPyramid[1], pointsPyramid[2], null) ) cnt++;
+        if (cnt>1) return false;
+        if ( ray.intersectWherePlanar(pointsPyramid[0], pointsPyramid[2], pointsPyramid[4], null) ) cnt++;
+        if (cnt>1) return false;
+        if ( ray.intersectWherePlanar(pointsPyramid[0], pointsPyramid[3], pointsPyramid[4], null) ) cnt++;
+        if (cnt>1) return false;
+   
+        
+        if ( ray.intersectWherePlanar(pointsPyramid[1], pointsPyramid[2], pointsPyramid[3], null) ) cnt++;
+        if (cnt>1) return false;
+        if ( ray.intersectWherePlanar(pointsPyramid[2], pointsPyramid[3], pointsPyramid[4], null) ) cnt++;
+        if (cnt>1) return false;
+        if (cnt==1)
+            return true;
+        else //->(cnt==0 || cnt>1)
+            return false;
+        
+    }
+     
+
+
+    private void selectDangerousTriangles() {
+        
+        
+
+        
+        for(Vertex v: graph.getVertices()){
+            v.setSafe(true);
+            if(insidePyramid(v.getTriangle().get1())){
+                v.setUnsafe();
+                continue;
+            }
+            if(insidePyramid(v.getTriangle().get2())){
+                v.setUnsafe();
+                continue;
+            }
+            if(insidePyramid(v.getTriangle().get3())){
+                v.setUnsafe();
+                continue;
+            }
+        }
+
+        
+    }
 }

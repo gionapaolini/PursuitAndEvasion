@@ -252,6 +252,14 @@ public class GraphA {
        }
        return copy;
     }
+
+    public void setVerticesSafe() {
+        
+        for(Vertex v: vertices){
+            v.setSafe(true);
+        }
+        
+    }
     
     
     

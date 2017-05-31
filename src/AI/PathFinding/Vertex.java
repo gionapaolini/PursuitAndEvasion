@@ -33,6 +33,7 @@ public class Vertex {
         this.time = 0.0;
         this.neighbors = new ArrayList();
         this.triangle = triangle;
+        safe = true;
     }
     
     public void incrementTimeNeighbour(double time){

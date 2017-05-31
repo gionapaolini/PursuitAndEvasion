@@ -153,8 +153,8 @@ public class mainClass extends SimpleApplication {
 
 
            match.checkViews();
-           match.calculateSafeTriangles2();
-            showDangerousTriangles(match);
+         match.calculateSafeTriangles();
+         showDangerousTriangles(match);
             
         }
         

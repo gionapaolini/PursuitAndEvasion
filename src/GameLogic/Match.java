@@ -328,13 +328,16 @@ public class Match {
     
     
     public void calculateSafeTriangles(){
+        
+        graph.setVerticesSafe();
+        
         for(Agent agent: agents){
             if(!(agent instanceof Pursuer))
                 continue;
             
             Pursuer current = (Pursuer) agent;
             for(Vertex v: graph.getVertices()){ 
-                    v.setSafe(true);
+                    
                     Ray ray1 = new Ray(current.getNodeAgent().getWorldTranslation(),v.getTriangle().get1().subtract(current.getNodeAgent().getWorldTranslation()).normalizeLocal());
                     Ray ray2 = new Ray(current.getNodeAgent().getWorldTranslation(),v.getTriangle().get2().subtract(current.getNodeAgent().getWorldTranslation()).normalizeLocal());
                     Ray ray3 = new Ray(current.getNodeAgent().getWorldTranslation(),v.getTriangle().get3().subtract(current.getNodeAgent().getWorldTranslation()).normalizeLocal());
@@ -351,20 +354,20 @@ public class Match {
                     if(results1.size()==0){
                         if(checkInSight(current, v.getTriangle().get1())){
                             v.setUnsafe();
-                            return;
+                            continue;
                         }
                         
                     }
                     if(results2.size()==0){
                         if(checkInSight(current, v.getTriangle().get2())){
                             v.setUnsafe();
-                            return;
+                            continue;
                         }
                     }
                     if(results3.size()==0){
                         if(checkInSight(current, v.getTriangle().get3())){
                             v.setUnsafe();
-                            return;
+                            continue;
                         }
                     }
             
@@ -388,7 +391,7 @@ public class Match {
                     planet.getPlanet().collideWith(ray, results);
                     if(results.size()<=0){
                         v.setUnsafe();
-                        return;
+                        continue;
                     }
                         
                 }
@@ -400,7 +403,7 @@ public class Match {
                     planet.getPlanet().collideWith(ray, results);
                     if(results.size()<=0){
                         v.setUnsafe();
-                        return;
+                        continue;
                     }
                         
                 }
@@ -412,7 +415,7 @@ public class Match {
                     planet.getPlanet().collideWith(ray, results);
                     if(results.size()<=0){
                         v.setUnsafe();
-                        return;
+                        continue;
                     }
                         
                 }
