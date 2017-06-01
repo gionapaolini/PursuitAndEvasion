@@ -210,29 +210,29 @@ public abstract class Agent {
             
             moving = true;
             lastMovementTime = System.currentTimeMillis();
-            
         }else if(moving){
-            moveTo(currentVertex.getTriangle().getCenter(), planet);
+                       
+            
+         
+
            //////////ADD DIFFERENT SPEED
-           float multiplier = 10;
-           Vector3f currentPosition = nodeAgent.getLocalTranslation();
-           Vector3f center = planet.getPlanet().getLocalTranslation(); 
+          
+           Vector3f currentPosition = nodeAgent.getWorldTranslation();
+           Vector3f center = planet.getNavMesh().getWorldTranslation(); 
            double distance = getDistance(center,currentPosition);
-           double difference  =  planet.getSettings().getRadius() - distance;
-           multiplier += (difference);
-          /*
-           if(difference>20)
-               multiplier = 5;
-           else if(difference<-20)
-               multiplier = 15;
-           else if()
-           */
-           Vector3f forward = nodeAgent.getLocalRotation().mult(Vector3f.UNIT_Z).mult(tpf * multiplier);
+           double difference  =  planet.getSettings().getRadius() +2 - distance;
+           System.out.println(difference/10);
+           difference = Math.max(difference/5, -0.45f);
+           maxVel = 0.5f;
+           maxVel +=difference;
+           Vector3f forward = nodeAgent.getLocalRotation().mult(Vector3f.UNIT_Z).normalize().mult(maxVel);
            nodeAgent.move(forward);
            if(onTriangle(currentVertex.getTriangle(),planet)){
                moving = false;
            }
+           moveTo(currentVertex.getTriangle().getCenter(), planet);            
            reposition(planet);
+           
           
            
         }
@@ -304,6 +304,8 @@ public abstract class Agent {
        Ray ray = new Ray(planet.getLocalTranslation(),nodeAgent.getLocalTranslation().subtract(planet.getLocalTranslation()).normalizeLocal());
         CollisionResults results = new CollisionResults();
         planet.collideWith(ray, results);
+        if(results.size()<=0)
+            return;
         Vector3f contactPoint = results.getFarthestCollision().getContactPoint();
         Vector3f normalPoint = results.getFarthestCollision().getContactNormal();
         float length = contactPoint.length();
@@ -426,12 +428,19 @@ public abstract class Agent {
         Vector3f currentPosition = nodeAgent.getLocalTranslation();
         Vector3f center = planetObj.getPlanet().getLocalTranslation(); 
         double distance = getDistance(center,currentPosition);
-        double difference  =  planetObj.getSettings().getRadius() - distance;
-        difference = difference/50;
-        maxVel = 0.2f;
-        maxVel -= difference;
-       float minDistant = 100000;
-       Agent closestAgent = null;
+        double difference  =  planetObj.getSettings().getRadius()+2 - distance;
+       
+        difference = Math.max(difference/5, -0.45f);
+        maxVel = 0.5f;
+        maxVel +=difference;
+
+      
+
+        
+        
+        
+        float minDistant = 100000;
+        Agent closestAgent = null;
         for(Agent agent: agents){
              float dist = agent.getNodeAgent().getWorldTranslation().add(nodeAgent.getWorldTranslation().mult(-1)).length();
              if(dist<minDistant){

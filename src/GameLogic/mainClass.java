@@ -153,8 +153,8 @@ public class mainClass extends SimpleApplication {
 
 
            match.checkViews();
-         match.calculateSafeTriangles();
-         showDangerousTriangles(match);
+           match.calculateSafeTriangles();
+           showDangerousTriangles(match);
             
         }
         
@@ -217,8 +217,7 @@ public class mainClass extends SimpleApplication {
                 "Common/MatDefs/Misc/Unshaded.j3md");
             mat.setColor("Color", ColorRGBA.Yellow);
             geo.setMaterial(mat);
-            Dtriangles.attachChild(geo);
-        }
+            Dtriangles.attachChild(geo);       }
     }
 
    

@@ -317,14 +317,14 @@ Vector2f mouseCoords = new Vector2f(inputManager.getCursorPosition());
          
          Vector3f rightVector = direction.cross(upVector);
          float nearDistance = 5;
-         float farDistance = 500;
-         float fov =90;
+         float farDistance = 40;
+         float fov=(float) Math.toRadians(90);
          float aspectRatio = 16/12;
          
          float Hnear = (float) (2 * Math.tan(fov/2) * nearDistance);
          float Wnear = Hnear*aspectRatio;
          
-         float Hfar = (float) (2 * Math.tan(fov / 2) * farDistance);
+         float Hfar = (float) (2 * Math.tan(fov/2) * farDistance);
          float Wfar = Hfar * aspectRatio;
          
          Vector3f Cnear = eyePosition.add(direction.mult(nearDistance));
@@ -476,16 +476,31 @@ Vector2f mouseCoords = new Vector2f(inputManager.getCursorPosition());
         for(Vertex v: graph.getVertices()){
             v.setSafe(true);
             if(insidePyramid(v.getTriangle().get1())){
-                v.setUnsafe();
-                continue;
+                 Ray ray = new Ray(agentNode.getWorldTranslation(),v.getTriangle().get1().subtract(agentNode.getWorldTranslation()).normalizeLocal());                                
+                 CollisionResults results = new CollisionResults();                 
+                 planet.collideWith(ray, results);
+                 if(results.size()<=0){
+                    v.setUnsafe();
+                    continue;
+                 }
             }
             if(insidePyramid(v.getTriangle().get2())){
-                v.setUnsafe();
-                continue;
+               Ray ray = new Ray(agentNode.getWorldTranslation(),v.getTriangle().get2().subtract(agentNode.getWorldTranslation()).normalizeLocal());                                
+                 CollisionResults results = new CollisionResults();                 
+                 planet.collideWith(ray, results);
+                 if(results.size()<=0){
+                    v.setUnsafe();
+                    continue;
+                 }
             }
             if(insidePyramid(v.getTriangle().get3())){
-                v.setUnsafe();
-                continue;
+               Ray ray = new Ray(agentNode.getWorldTranslation(),v.getTriangle().get3().subtract(agentNode.getWorldTranslation()).normalizeLocal());                                
+                 CollisionResults results = new CollisionResults();                 
+                 planet.collideWith(ray, results);
+                 if(results.size()<=0){
+                    v.setUnsafe();
+                    continue;
+                 }
             }
         }
 

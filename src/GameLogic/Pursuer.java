@@ -81,7 +81,7 @@ public class Pursuer extends Agent{
                 if(checkInSight(escaper)){
                      e.die();
                     //match.pause();
-                     createLine(e, planet.rootNode);
+                     //createLine(e, planet.rootNode);
                      
                 }
 
