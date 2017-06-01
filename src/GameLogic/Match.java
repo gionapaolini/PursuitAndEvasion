@@ -57,7 +57,10 @@ public class Match {
             p.setPosition(p.getCurrentVertex().getTriangle().getCenter());
         }
         for(int i=0; i<n_escapers;i++){
-            agents.add(new Escaper(assetManager));
+            Escaper e = new Escaper(assetManager);
+            agents.add(e);
+             e.setCurrentVertex(copy.remove((int)(Math.random()*copy.size())));
+            e.setPosition(e.getCurrentVertex().getTriangle().getCenter());
         }
         for(Agent agent: agents){
             for(Agent agent1: agents){
@@ -159,8 +162,10 @@ public class Match {
                 continue;
             if(agent instanceof Pursuer)
                 agent.moveOnGrid(tpf, planet);
-            else
-                agent.moveEvading(planet);
+            else{
+                //agent.moveEvading(planet);
+                agent.moveOnGridEscaper(tpf, planet);
+            }
             
         }
         /*

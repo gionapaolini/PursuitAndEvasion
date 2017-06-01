@@ -238,6 +238,66 @@ public abstract class Agent {
         }
     }
     
+    
+    public void moveOnGridEscaper(float tpf, Planet planet){
+       
+        if(!moving &&  System.currentTimeMillis()-lastMovementTime>3000){
+            System.out.println("NOT MOVING");
+            double bestTime = 10000;
+            Vertex bestVertex = null;
+            for(Vertex v: currentVertex.getNeighbors()){
+                    
+                if(!v.isSafe())
+                    continue;
+              
+                    if(v.getTime()<bestTime){
+                        bestVertex = v;
+                        bestTime = v.getTime();
+                    }else if(v.getTime()==bestTime && Math.random()>=0.75){
+                        bestVertex = v;
+                        bestTime = v.getTime();
+                    }
+                
+            }
+            if(currentVertex == null)
+                return;
+      
+            currentVertex = bestVertex;
+   
+       
+            
+          
+            moving = true;
+            lastMovementTime = System.currentTimeMillis();
+        }else if(moving){
+                       
+            
+         
+
+           //////////ADD DIFFERENT SPEED
+          
+           Vector3f currentPosition = nodeAgent.getWorldTranslation();
+           Vector3f center = planet.getNavMesh().getWorldTranslation(); 
+           double distance = getDistance(center,currentPosition);
+           double difference  =  planet.getSettings().getRadius() +2 - distance;
+           System.out.println(difference/10);
+           difference = Math.max(difference/5, -0.45f);
+           maxVel = 0.5f;
+           maxVel +=difference;
+           Vector3f forward = nodeAgent.getLocalRotation().mult(Vector3f.UNIT_Z).normalize().mult(maxVel);
+           nodeAgent.move(forward);
+           if(onTriangle(currentVertex.getTriangle(),planet)){
+               moving = false;
+           }
+           moveTo(currentVertex.getTriangle().getCenter(), planet);            
+           reposition(planet);
+           
+          
+           
+        }
+    }
+    
+    
     public boolean onTriangle(Triangle tri, Planet planet){
         Ray ray = new Ray(planet.getPlanet().getLocalTranslation(),nodeAgent.getLocalTranslation());
         CollisionResults results = new CollisionResults();
